@@ -9,7 +9,6 @@ public class PowerStone extends Item {
         super("Power Stone");
     }
 
-    @Override
     public void use(Combatant actor, Combatant target, BattleEngine engine) {
         if (!(actor instanceof Player)) {
             throw new IllegalArgumentException("Power Stone can only be used by players.");
