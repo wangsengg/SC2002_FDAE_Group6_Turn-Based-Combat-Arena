@@ -99,23 +99,28 @@ public class BattleEngine {
             if (!currentPlayer.canAct()) {
                 ui.showActionMessage(currentPlayer.getName() + " is stunned and cannot act this turn.");
                 currentPlayer.updateTurnBasedEffects();
+                flushMessages(currentPlayer);
                 return;
             }
 
             handlePlayerTurn(currentPlayer);
             currentPlayer.getSkillCooldown().reduceAfterOwnerTurn();
             currentPlayer.updateTurnBasedEffects();
+            flushMessages(currentPlayer);
         } else if (combatant instanceof Enemy) {
             Enemy enemy = (Enemy) combatant;
 
             if (!enemy.canAct()) {
                 ui.showActionMessage(enemy.getName() + " is stunned and cannot act this turn.");
                 enemy.updateTurnBasedEffects();
+                flushMessages(enemy);
                 return;
             }
 
             handleEnemyTurn(enemy);
             enemy.updateTurnBasedEffects();
+            flushMessages(enemy);
+            flushMessages(player);
         }
 
         removeDeadEnemies();
@@ -134,6 +139,7 @@ public class BattleEngine {
                 case 2:
                     new Defend().execute(player, player, this);
                     ui.showActionMessage(player.getName() + " used Defend.");
+                    flushMessages(player);
                     actionCompleted = true;
                     break;
                 case 3:
@@ -163,6 +169,7 @@ public class BattleEngine {
         int damage = Math.max(0, beforeHP - target.getCurrentHP());
         ui.showActionMessage(player.getName() + " attacked " + target.getName()
                 + " for " + damage + " damage.");
+        flushMessages(target);
 
         return true;
     }
@@ -186,6 +193,11 @@ public class BattleEngine {
 
         new UseItem(chosenItem).execute(player, target, this);
         ui.showActionMessage(player.getName() + " used " + chosenItem.getName() + ".");
+        flushMessages(player);
+        if (target != player) {
+            flushMessages(target);
+        }
+        flushEnemyMessages();
         return true;
     }
 
@@ -206,6 +218,11 @@ public class BattleEngine {
 
         player.getSpecialSkill().execute(player, target, this);
         ui.showActionMessage(player.getName() + " used " + player.getSpecialSkill().getName() + ".");
+        flushMessages(player);
+        if (target != player) {
+            flushMessages(target);
+        }
+        flushEnemyMessages();
         return true;
     }
 
@@ -225,11 +242,13 @@ public class BattleEngine {
     private void applyRoundEffects() {
         if (player.isAlive()) {
             player.updateRoundBasedEffects();
+            flushMessages(player);
         }
 
         for (Enemy enemy : activeEnemies) {
             if (enemy.isAlive()) {
                 enemy.updateRoundBasedEffects();
+                flushMessages(enemy);
             }
         }
 
@@ -256,6 +275,18 @@ public class BattleEngine {
             activeEnemies.addAll(level.getBackupEnemies());
             backupSpawned = true;
             ui.showBackupSpawnMessage();
+        }
+    }
+
+    private void flushMessages(Combatant combatant) {
+        for (String message : combatant.drainBattleMessages()) {
+            ui.showActionMessage(message);
+        }
+    }
+
+    private void flushEnemyMessages() {
+        for (Enemy enemy : activeEnemies) {
+            flushMessages(enemy);
         }
     }
 
