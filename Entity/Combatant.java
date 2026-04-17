@@ -14,6 +14,7 @@ public abstract class Combatant {
     protected int defense;
     protected int speed;
     protected List<StatusEffect> statusEffects;
+    protected List<String> battleMessages;
 
     public Combatant(String name, int maxHP, int attack, int defense, int speed) {
         this.name = name;
@@ -23,6 +24,7 @@ public abstract class Combatant {
         this.defense = defense;
         this.speed = speed;
         this.statusEffects = new ArrayList<>();
+        this.battleMessages = new ArrayList<>();
     }
 
     public void applyEffect(StatusEffect effect) {
@@ -31,9 +33,9 @@ public abstract class Combatant {
         statusEffects.add(effect);
 
         if (effect.getRemainingTurns() < 0) {
-            System.out.println(name + " gains status effect: " + effect.getName() + " (until end of level)");
+            addBattleMessage(name + " gains status effect: " + effect.getName() + " (until end of level)");
         } else {
-            System.out.println(name + " gains status effect: " + effect.getName()
+            addBattleMessage(name + " gains status effect: " + effect.getName()
                     + " (" + effect.getRemainingTurns() + " turn(s)/round(s))");
         }
     }
@@ -80,7 +82,7 @@ public abstract class Combatant {
 
         for (StatusEffect effect : expiredEffects) {
             effect.onRemove(this);
-            System.out.println(name + "'s " + effect.getName() + " has expired.");
+            addBattleMessage(name + "'s " + effect.getName() + " has expired.");
         }
 
         statusEffects.removeAll(expiredEffects);
@@ -137,7 +139,7 @@ public abstract class Combatant {
 
             case HP:
                 if (amount < 0 && isInvulnerable()) {
-                    System.out.println(name + " is invulnerable and takes no damage.");
+                    addBattleMessage(name + " is invulnerable and takes no damage.");
                     break;
                 }
                 currentHP = Math.max(0, Math.min(maxHP, currentHP + amount));
@@ -152,6 +154,16 @@ public abstract class Combatant {
             }
         }
         return false;
+    }
+
+    protected void addBattleMessage(String message) {
+        battleMessages.add(message);
+    }
+
+    public List<String> drainBattleMessages() {
+        List<String> messages = new ArrayList<>(battleMessages);
+        battleMessages.clear();
+        return messages;
     }
 
     public boolean isAlive() {
