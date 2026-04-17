@@ -29,8 +29,6 @@ public abstract class SpecialSkill extends Action {
         Player player = (Player) actor;
 
         if (!player.getSkillCooldown().isAvailable()) {
-            System.out.println(player.getName() + " special skill on cooldown. Remaining: "
-                    + player.getSkillCooldown().getCurrentTurnsRemaining());
             return;
         }
 
@@ -38,7 +36,7 @@ public abstract class SpecialSkill extends Action {
         player.getSkillCooldown().startCooldown(coolDown);
     }
 
-    public boolean requiresTargetSelection(){
+    public boolean requiresTargetSelection() {
         return true;
     }
 
